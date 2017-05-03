@@ -1,0 +1,629 @@
+/**
+* JJTree file
+*
+*  @Author: PowerPret
+*  @File: cmmcompiler.jjt
+*/
+
+
+ 
+options {
+  JDK_VERSION = "1.5";
+}
+ 
+PARSER_BEGIN(compiler) 
+package com.CmmCompiler.interpreter;
+import java.util.*;
+import java.io.*;
+
+
+public class compiler {
+  public static FileInputStream fileStream;
+ // 	private static Token tk;
+//	private static String errorMsg="";
+  //public static int scope=0;
+  
+static  Token tk;
+static  String errorMsg="";
+  
+  	public static void error(String message) {
+		errorMsg += tk.beginLine + " 行  " + tk.beginColumn + " 列      "
+				+ message + "\n";
+		// UserGraphic.println(token.getRow() + "行 " + token.getColumn()
+		// +"列     "+ message);
+	}
+
+	public static String getErrorMsg() {
+		return errorMsg; 
+	}
+ // public static void main(String args[]) throws Exception {
+	//	try {
+		  //建立parser对象，调用lexical方法对test.cmm进行第一次扫描，并完成词法分析
+	//		fileStream = new FileInputStream("test.cmm");
+	//	  	compiler parser = new compiler(fileStream);
+	//	  	parser.Lexical();
+	//	  	fileStream.close();
+	//	  	
+	//	  //重新初始化parser对象，对test.cmm进行第二次扫描，完成语法及语义分析，打印语法树和符号表，并将运行结果显示在model-console中
+	//	  	fileStream = new FileInputStream("test.cmm");
+	//	  	parser.ReInit(fileStream);
+	//	  	System.out.println("Start syntactical and semantic analyzing......");
+	//	  	SimpleNode n = parser.Start();
+	//	  	//先建立syntactical_result文件，否则会再dump时报错
+	//	  	FileWriter SynFWriter = new FileWriter("Syntactical_result.txt");
+	//		SynFWriter.write("");
+	//		SynFWriter.close();
+  	//		n.dump("");
+  	//		System.out.println("Syntactical_result.txt generated!");
+  	//		execute exe = new execute(n);
+  	//		exe.walk();
+  	//		PrintStream table_stream = new PrintStream(new FileOutputStream("VarTable.txt"));
+  	//		table_stream.print(exe.varTable.toString());
+  	//		System.out.println("VarTable.txt generated!");
+  	//		fileStream.close();  			
+  	//		
+	//	} catch (FileNotFoundException e) {
+	//		// TODO Auto-generated catch block
+	//		e.printStackTrace();
+	//	}
+ // }
+
+  private static String[] TokenKindImg={
+"", null, null, null, null, null, null, null, null, "\"KWIF\"", 
+"\"KWELSE\"", "\"KWWHILE\"", "\"KWBREAK\"", "\"KWREAD\"", 
+"\"KWWRITE\"", "\"KWINT\"", "\"KWDOUBLE\"", "\"KWBOOLEAN\"","\"KWSWITCH\"","\"KWCASE\"","\"KWDEFAULT\"", "\"PLUS\"", "\"MINUS\"", 
+"\"MULTIPLY\"", "\"DIVIDE\"", "\"MOD\"", "\"LESS_THAN\"", "\"GREATER_THAN\"", "\"LESS_EQUAL\"", "\"GREATER_EQUAL\"", "\"EQUAL\"", "\"NOT_EQUAL\"", "\"ASSIGNMENT\"", 
+"\"LPARENTHESIS\"", "\"RPARENTHESIS\"", "\"LBRACKET\"", "\"RBRACKET\"", "\"LBLOCK\"", "\"RBLOCK\"", "\"COMMA\"","\"COLON\"", "\"EOL\"", "\"INTEGER_CONSTANT\"", "\"DOUBLE_CONSTANT\"", "\"BOOLEAN_CONSTANT\"", null, 
+"\"IDENTIFIER\"", null, };
+
+  
+  public final String Lexical()throws FileNotFoundException{
+		compilerTokenManager TokenManager=this.token_source;
+	//	FileOutputStream lexFOStream = new FileOutputStream("Lexical_result.txt");
+	//	PrintStream Lexical_Stream = new PrintStream(lexFOStream);
+	//	System.out.println("Start lexical analyzing......");
+		String result="";
+		String errMsg="";
+		String lexical="";
+		String sentence="";
+		int Line=0;
+		Token t;
+		lexicalLOOP:
+		while(true){
+		  try{
+		    t=TokenManager.getNextToken();
+		  }	catch(TokenMgrError e){
+		    errMsg += e.toString()+"\r\n";
+		    try {
+		      TokenManager.input_stream.readChar();
+		      //System.out.println(TokenManager.input_stream.tokenBegin+" "+TokenManager.input_stream.bufpos+" "+TokenManager.input_stream.line+" "+TokenManager.input_stream.column);
+		  	} catch(IOException ex){
+		  		errMsg += ex.getMessage()+"\r\n";
+		  	}
+		    continue lexicalLOOP;
+		  }
+		    
+		  if(Line!=0&&Line!=t.beginLine){
+		    sentence+="\r\n";
+		    result += sentence+lexical;
+		    Line=t.beginLine;
+		    sentence = "Line:"+Line;
+		    lexical = "";
+		  } else if(Line==0){
+		    Line = t.beginLine;
+		    sentence="Line:"+Line;
+		  }
+		  if(t.specialToken != null){
+		    Token tmp_t = t.specialToken;
+		  	while (tmp_t.specialToken != null) tmp_t = tmp_t.specialToken;
+		  	
+		  	while (tmp_t != null) {
+			    result += tmp_t.image+"\r\n";
+			    tmp_t = tmp_t.next;
+		  	}
+		  } 
+		     
+		  sentence += " "+t.image;
+		  if(t.kind==0){
+		    break;
+		  }
+		  if(TokenKindImg[t.kind]==null)lexical+="\t(Line:"+t.beginLine+":"+"\t"+t.image+")"+"  ";
+		  else lexical+="\t(Line:"+t.beginLine+":"+"\t"+TokenKindImg[t.kind]+"\t"+t.image+")"+"  ";
+		  lexical+="\r\n";
+		  //System.out.println("(\t"+t.image+"\t"+t.kind+"\t)");
+		}
+		//System.out.println("Line:"+Line+sentence);
+		//System.out.println(lexical);
+//		Lexical_Stream.print(result+errMsg);
+//		System.out.println("Lexical_result.txt generated!");
+		return result;
+  }
+  
+  public final String Lexicaler()throws FileNotFoundException{
+		compilerTokenManager TokenManager=this.token_source;
+	//	FileOutputStream lexFOStream = new FileOutputStream("Lexical_result.txt");
+	//	PrintStream Lexical_Stream = new PrintStream(lexFOStream);
+	//	System.out.println("Start lexical analyzing......");
+		String result="";
+		String errMsg="";
+		String lexical="";
+		String sentence="";
+		int Line=0;
+		Token t;
+		lexicalLOOP:
+		while(true){
+		  try{
+		    t=TokenManager.getNextToken();
+		  }	catch(TokenMgrError e){
+		    errMsg += e.toString()+"\r\n";
+		    try {
+		      TokenManager.input_stream.readChar();
+		      //System.out.println(TokenManager.input_stream.tokenBegin+" "+TokenManager.input_stream.bufpos+" "+TokenManager.input_stream.line+" "+TokenManager.input_stream.column);
+		  	} catch(IOException ex){
+		  		errMsg += ex.getMessage()+"\r\n";
+		  	}
+		    continue lexicalLOOP;
+		  }
+		    
+		  if((Line!=0&&Line!=t.beginLine)||t.kind==0){
+		    sentence+="\r\n";
+		    result += sentence+lexical;
+		    Line=t.beginLine;
+		    sentence = "Line:"+Line;
+		    lexical = "";
+		  } else if(Line==0){
+		    Line = t.beginLine;
+		    sentence="Line:"+Line;
+		  }
+		  if(t.specialToken != null){
+		    Token tmp_t = t.specialToken;
+		  	while (tmp_t.specialToken != null) tmp_t = tmp_t.specialToken;
+		  	
+		  	while (tmp_t != null) {
+			    result += tmp_t.image+"\r\n";
+			    tmp_t = tmp_t.next;
+		  	}
+		  } 
+		     
+		  sentence += " "+t.image;
+		  if(t.kind==0){
+		    break;
+		  }
+		  if(TokenKindImg[t.kind]==null)lexical+="\t(Line:"+t.beginLine+":"+"\t"+t.image+")"+"  ";
+		  else lexical+="\t(Line:"+t.beginLine+":"+"\t"+TokenKindImg[t.kind]+"\t"+t.image+")"+"  ";
+		  lexical+="\r\n";
+		  //System.out.println("(\t"+t.image+"\t"+t.kind+"\t)");
+		}
+		//System.out.println("Line:"+Line+sentence);
+		//System.out.println(lexical);
+//		Lexical_Stream.print(result+errMsg);
+//		System.out.println("Lexical_result.txt generated!");
+		return errMsg;
+  }
+}
+
+PARSER_END(compiler)
+
+SKIP :
+{
+ 	" "
+|	"\r"
+|	"\t"
+|	"\n"
+//|   <"//"(~["\n","\r"])*("\n"|"\r"|"\r\n") >
+//|   <"/*"(~["*"])*"*"(~["/"](~["*"])*"*")*"/" >
+//|		<"/*"(~["*"])*"*"("*"|~["*","/"] (~["*"])* "*")* "/">
+}
+
+SPECIAL_TOKEN :
+{
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+}
+SPECIAL_TOKEN :
+{
+  "/*" : WithinComment
+}
+<WithinComment> SPECIAL_TOKEN :
+{
+  "*/" : DEFAULT
+}
+<WithinComment> MORE :
+{
+  <~[]>
+}
+TOKEN : /* KEYWORDS*/
+{
+	< KWIF: "if">
+| 	< KWELSE: "else">
+| 	< KWWHILE: "while">
+| 	< KWBREAK: "break">
+| 	< KWREAD: "read">
+| 	< KWWRITE: "write">
+| 	< KWINT: "int">
+| 	< KWDOUBLE: "double"|"real">
+| 	< KWBOOLEAN: "bool">
+| 	< KWSWITCH: "switch">
+| 	< KWCASE: "case">
+| 	< KWDEFAULT: "default">
+}
+TOKEN : /* OPERATORS */
+{
+	< PLUS: "+" >
+|	< MINUS: "-" >
+|	< MULTIPLY: "*" >
+|	< DIVIDE: "/" >
+| 	< MOD: "%">
+| 	< LESS_THAN: "<">
+| 	< GREATER_THAN: ">">
+| 	< LESS_EQUAL: "<=">
+| 	< GREATER_EQUAL: ">=">
+| 	< EQUAL: "==">
+| 	< NOT_EQUAL: "!="|"<>">
+| 	< ASSIGNMENT: "=">
+| 	< LPARENTHESIS: "(">
+| 	< RPARENTHESIS: ")">
+| 	< LBRACKET: "[">
+| 	< RBRACKET: "]">
+| 	< LBLOCK: "{">
+| 	< RBLOCK: "}">
+| 	< COMMA: ",">
+| 	< COLON: ":">
+| 	< EOL: ";">
+}
+TOKEN : /*CONSTANTS*/
+{
+    < INTEGER_CONSTANT: "0" | ["1"-"9"](<DIGIT>)* >
+|   < DOUBLE_CONSTANT: < INTEGER_CONSTANT >("."(<DIGIT>)*)?>
+| 	< BOOLEAN_CONSTANT: "true" | "false">
+|   < #DIGIT: ["0" - "9"] >
+}
+TOKEN : /*IDENTIFIER*/
+{
+	< IDENTIFIER: <LETTER> | <LETTER>(<LETTER> | <DIGIT> | "_")*(<LETTER> | <DIGIT>)+>
+| 	< #LETTER: ["a"-"z","A"-"Z"]>
+}
+
+
+SimpleNode Start() : {}
+{
+  try{
+  	(Stmt())+< EOF>
+  } catch(ParseException e){
+    System.out.println(e.toString());
+  	getNextToken();
+  }
+  {return jjtThis;}
+}
+void Stmt() :{}
+{
+  try{
+	(
+	  varDecl()
+	| IfStmt()
+	| SwitchStmt()
+	| WhileStmt()
+	| BreakStmt()
+	| AssignStmt()
+	| StmtBlock()
+	| ReadStmt()
+	| WriteStmt()
+	)
+  } catch (ParseException e){
+	System.out.println(e.toString());
+    Token t;
+    do {
+      t = getNextToken();
+    } while (t.kind != EOL);
+  }
+}
+
+void BreakStmt() :{}
+{
+  < KWBREAK>< EOL>
+}
+
+void StmtBlock() :{}
+{
+  < LBLOCK>(Stmt())*
+  try{
+    < RBLOCK>
+  } catch(ParseException e){
+    
+      error("Warning: No matched block found at line " + e.currentToken.next.beginLine + ", column " + e.currentToken.next.beginColumn);
+  }
+}
+
+////////////////////////////////////////
+//Definition of Variable Declaration
+void varDecl() :{}
+{
+  Type()VarList()< EOL> 
+}
+void Type() :
+{
+  String type;
+  String length;
+ // Token node;
+}
+{
+  < KWINT>
+  {
+    type = "integer";
+    jjtThis.jjtSetValue(type);
+  }
+  (< LBRACKET>tk = < INTEGER_CONSTANT>< RBRACKET>
+  {
+  	if( Integer.parseInt(tk.image)<0)
+  	{
+  		error("Index Should Be Positive Number! \n");
+  	}
+  	else{
+    length = tk.image;
+    jjtThis.jjtSetValue(length);
+  	}
+  }
+  )?
+| < KWDOUBLE>
+  {
+    type = "double";
+    jjtThis.jjtSetValue(type);
+  }
+  (< LBRACKET>tk = < INTEGER_CONSTANT>< RBRACKET>
+  {
+    if( Integer.parseInt(tk.image)<0)
+  	{
+  		error("Index Should Be Positive Number! \n");
+  	}
+  	else{
+    length = tk.image;
+    jjtThis.jjtSetValue(length);
+  	}
+    
+  }
+  )?
+}
+void VarList() :
+{
+//Token node;
+  String name;
+  tempNote note;
+}
+{
+  tk= < IDENTIFIER>
+  {
+	name = tk.image;
+	jjtThis.jjtSetValue(name);
+  }
+  (<ASSIGNMENT> Expression()
+  )?
+  (< COMMA>tk = < IDENTIFIER>
+  {
+  	if((tk.image=="_")||(tk.image=="0")||(tk.image=="1")||(tk.image=="2")||(tk.image=="3")||(tk.image=="4")||(tk.image=="5")||(tk.image=="6")||(tk.image=="7")||(tk.image=="8")||(tk.image=="9")||((tk.image=="a")&&(tk.next.image=="_"))){
+  		error("Virable Declaration Error! \n");
+  	} 
+  	else{  		
+	name = tk.image;
+	jjtThis.jjtSetValue(name);
+  	}
+  }
+    (<ASSIGNMENT> Expression()
+  )?
+  )* 
+}
+
+
+ 
+
+////////////////////////////////////////
+//Definition of If-Clause
+void IfStmt() :{}
+{
+  < KWIF>< LPARENTHESIS>Criterion()< RPARENTHESIS>Stmt()(< KWELSE>Stmt())?
+}
+
+
+///////////////////////////////////////
+//Definition of Swith-Clause
+void SwitchStmt(): {}
+{
+	< KWSWITCH>< LPARENTHESIS>Expression()< RPARENTHESIS>
+	< LBLOCK>
+	(
+	  < KWCASE>Expression()< COLON>
+	  Stmt()
+	)*
+	(< KWDEFAULT>< COLON>
+	  Stmt()
+	)?
+	< RBLOCK>
+}
+
+///////////////////////////////////////
+//Definition of Criterion
+void Criterion() :
+{
+  String type;
+}
+{  
+  Expression()
+  (
+    
+  (
+	< GREATER_THAN>
+	{
+	  jjtThis.jjtSetValue(">");
+	}
+| 	< LESS_THAN>
+	{
+	  jjtThis.jjtSetValue("<");
+	}
+| 	< EQUAL>
+	{
+	  jjtThis.jjtSetValue("==");
+	}
+| 	< NOT_EQUAL>
+	{
+	  jjtThis.jjtSetValue("!=");
+	}
+| 	< GREATER_EQUAL>
+	{
+	  jjtThis.jjtSetValue(">=");
+	}
+| 	< LESS_EQUAL>
+	{
+	  jjtThis.jjtSetValue("<=");
+	}
+  )
+  Expression()
+)?
+}
+
+///////////////////////////////////////////
+//Definition of While-Clause
+void WhileStmt() :{}
+{
+  < KWWHILE>< LPARENTHESIS>Criterion()< RPARENTHESIS>Stmt()
+}
+
+
+//////////////////////////////////////////
+//Definition of Read-Clause
+void ReadStmt() :{}
+{
+  < KWREAD>< LPARENTHESIS>Value()< RPARENTHESIS>< EOL>
+}
+
+//////////////////////////////////////////
+//Definition of Write-Clause
+void WriteStmt() :{}
+{
+  < KWWRITE>< LPARENTHESIS>Expression()< RPARENTHESIS>< EOL>
+}
+
+
+//////////////////////////////////////////
+//Definition of Assignment
+void AssignStmt() :{}
+{
+  Value()< ASSIGNMENT>Expression()< EOL>
+}
+void Value() :
+{
+  String name;
+  String length;
+  
+} 
+{
+  tk  = < IDENTIFIER>
+  {
+  //	if(node.image!="int" || node.image!="double" || node.image!="real"){
+  //		error("Invalid Type! \n");
+  //	}
+  //	else{
+	name = tk.image;
+	jjtThis.jjtSetValue(name);
+ // }
+  }
+  (< LBRACKET>(tk = < INTEGER_CONSTANT>
+  {
+  	if( Integer.parseInt(tk.image)<0)
+  	{
+  		error("Index Should Be Positive Number! \n");
+  	}
+  	else //if(Integer.parseInt(node.image)>=0){
+  	{
+	length = tk.image;
+	jjtThis.jjtSetValue(length);
+  	}
+  }
+  |Expression())  < RBRACKET>)?
+}
+
+///////////////////////////////////////////
+//Comment
+//void Comment() :{}
+//{
+//	"/*"tk=< WithinComment>"*/"
+//	{
+//		if(tk.image=="/*"||tk.image=="*/")
+//		 error("Duplicated Comment Signs! \n");
+//	}
+//	
+//}
+
+///////////////////////////////////////////
+//Definition of Expression
+void Expression() :
+{
+  String type;
+}
+{
+  Term() (( <PLUS>
+  {
+	type="+";
+	jjtThis.jjtSetValue(type);
+  }
+  | <MINUS>
+  {
+	type="-";
+	jjtThis.jjtSetValue(type);
+  }
+  ) Term())*
+}
+void Term() :
+{
+  String type;
+}
+{
+  Element() (( <MULTIPLY>
+  {
+	type="*";
+	jjtThis.jjtSetValue(type);
+  }
+  | <DIVIDE>
+  {
+	type="/";
+	jjtThis.jjtSetValue(type);
+  }
+  | < MOD>
+  {
+	type="%";
+	jjtThis.jjtSetValue(type);
+  }
+  ) Element())*
+}
+void Element() :
+{
+  String type;
+  Token node;
+}
+{
+  <MINUS> Element()
+  {
+	type="minus";
+	jjtThis.jjtSetValue(type);
+  }
+ | node = <INTEGER_CONSTANT>
+  {
+	type="integer";
+	jjtThis.jjtSetValue(type);
+	jjtThis.jjtSetValue(node.image);
+  }
+ | node = <DOUBLE_CONSTANT>
+  {
+	type="double";
+	jjtThis.jjtSetValue(type);
+	jjtThis.jjtSetValue(node.image);
+  }
+ | "(" Expression() ")"
+ {
+	type="expression";
+	jjtThis.jjtSetValue(type);
+ }
+ | Value()
+ {
+	type="value";
+	jjtThis.jjtSetValue(type);
+ }
+}
+

@@ -1,0 +1,22 @@
+//test switch
+
+int a = 4;
+int i = 0;
+switch(a)
+{
+   case 5:
+     i = 2;
+   case 4:
+     i = 6;
+   default:
+     i = 1;
+}
+write(a);
+write(i);
+
+/*output:
+4
+6
+*///:~
+
+

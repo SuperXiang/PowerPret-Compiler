@@ -1,0 +1,20 @@
+New variable entry:
+	The Type is:double array
+	The Name is:R
+	The length is:6
+New variable entry:
+	The Type is:integer
+	The Name is:swap
+	The value is:0.0
+New variable entry:
+	The Type is:integer
+	The Name is:j
+	The value is:3.0
+New variable entry:
+	The Type is:integer
+	The Name is:k
+	The value is:6.0
+New variable entry:
+	The Type is:integer
+	The Name is:i
+	The value is:1.0

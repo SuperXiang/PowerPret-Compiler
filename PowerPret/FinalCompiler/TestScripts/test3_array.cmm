@@ -1,0 +1,50 @@
+/**
+ * 
+ * 数组测试 主要是：
+ * 1.数组下标
+ * 2.数组赋值
+ * 其中数组赋值包括 
+ *	1)直接赋值; 
+ *	2)算术运算赋值; 
+ *	3)变量赋值; 
+ *	4)read赋值
+ */
+
+double[6] doubleArray; 
+int[2]  intArray ; 
+double a;
+a = 2.0;
+int b;
+b = 0;
+
+
+doubleArray[b] = 2.0;
+doubleArray[1] = a;
+doubleArray[2] = intArray[0];
+a = 0.9;
+doubleArray[3] = a;
+doubleArray[4] = 5.0 - 2.0 / (4.0 - 3.0) * 2.5 + 0.01; 
+
+
+read(doubleArray[5]);
+
+
+
+int x;
+x = 0;
+while(x < 6)
+{
+	write(doubleArray[x]);
+	x = x + 1;
+}
+
+/*output:
+23.33			#这是输入的数字
+2.0
+2.0
+0.0
+0.9
+0.01
+23.33
+*///:~
+

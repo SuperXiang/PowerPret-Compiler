@@ -1,0 +1,19 @@
+//test break
+
+int a = 1;
+int b = 2;
+while(a<7){
+  write(a);
+  if(b == 4) break;
+  write(b);
+  a = a+1;
+  b = b+1;
+}
+/*output:
+1
+2
+2
+3
+3
+*///:~
+
